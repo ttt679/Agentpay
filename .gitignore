@@ -40,3 +40,4 @@ aipay_keys/
 # Debug logs
 debug_*.log
 *AIPAY_DEBUG*.log
+.codebuddy/
