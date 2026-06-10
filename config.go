@@ -1,6 +1,7 @@
 package aipay
 
 import (
+	"log"
 	"os"
 )
 
@@ -43,6 +44,8 @@ func LoadConfig() *Config {
 		data, err := os.ReadFile(keyFile)
 		if err == nil {
 			cfg.PrivateKey = string(data)
+		} else {
+			log.Printf("[aipay] WARNING: AIPAY_PRIVATE_KEY_FILE set but cannot read %s: %v", keyFile, err)
 		}
 	}
 	if cfg.PrivateKey == "" {
@@ -54,6 +57,8 @@ func LoadConfig() *Config {
 		data, err := os.ReadFile(keyFile)
 		if err == nil {
 			cfg.AlipayPublicKey = string(data)
+		} else {
+			log.Printf("[aipay] WARNING: AIPAY_PUBLIC_KEY_FILE set but cannot read %s: %v", keyFile, err)
 		}
 	}
 	if cfg.AlipayPublicKey == "" {

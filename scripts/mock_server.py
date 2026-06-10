@@ -15,6 +15,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 import base64
 import time
+import uuid
 import sys
 import io
 
@@ -55,18 +56,31 @@ class MockHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": "Invalid payment proof"}).encode('utf-8'))
                 print(f"[400] Invalid payment proof: {e}")
         else:
-            # 返回 402 Payment Required（与 agentpay-proxy 协议一致）
+            # 返回 402 Payment Required（与 agentpay-proxy 协议对齐）
+            trade_no = f"MOCK_{int(time.time() * 1000)}_{uuid.uuid4().hex[:6]}"
+
+            # 构造 Payment-Needed 头（模拟结构，无真实签名）
+            payment_needed_data = {
+                "out_trade_no": trade_no,
+                "total_amount": "0.05",
+                "subject": "AI智能体服务（Mock）",
+                "sign": "MOCK_SIGNATURE_NOT_REAL",
+            }
+            payment_needed_b64 = base64.b64encode(json.dumps(payment_needed_data).encode()).decode()
+
             self.send_response(402)
             self.send_header('Content-Type', 'application/json')
-            self.send_header('X-Mock-Payment-Needed', 'true')
+            self.send_header('Payment-Needed', payment_needed_b64)
             self.end_headers()
 
             response = {
-                "error": "Payment Required",
-                "message": "This resource requires payment. Add a Payment-Proof header to proceed.",
+                "error": "Payment Needed",
+                "message": "This resource requires payment of 0.05 CNY (Mock)",
+                "resource_id": self.path,
+                "out_trade_no": trade_no,
             }
             self.wfile.write(json.dumps(response, indent=2, ensure_ascii=False).encode('utf-8'))
-            print(f"[402] Payment required for {self.path}")
+            print(f"[402] Payment required for {self.path} trade_no={trade_no}")
 
         print(f"   Body: {body[:100]}...")
         print()

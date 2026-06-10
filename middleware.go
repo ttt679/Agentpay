@@ -19,6 +19,9 @@ import (
 // Key: trade_no, Value: expiry time (30 minutes after first use).
 var proofCache sync.Map
 
+// fulfillmentSem bounds concurrent async fulfillment goroutines to prevent unbounded goroutine growth under extreme load.
+var fulfillmentSem = make(chan struct{}, 100)
+
 // Middleware returns a Gin handler that enforces AI Pay (402 protocol).
 //
 // Every request to the protected route is checked:
@@ -77,7 +80,10 @@ func Middleware(cfg *Config, pricePerCall float64, goodsName string) gin.Handler
 		c.Next()
 
 		// After handler returns, send fulfillment confirmation (async) with 30s timeout
+		// Semaphore bounds concurrent goroutines to prevent unbounded growth under extreme load.
+		fulfillmentSem <- struct{}{}
 		go func(tradeNo string) {
+			defer func() { <-fulfillmentSem }()
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 
