@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pay Go - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .demo-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-secondary {
+            background: #a0aec0;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #718096;
+        }
+
+        .log-container {
+            background: #1a202c;
+            color: #a0aec0;
+            padding: 20px;
+            border-radius: 6px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-request {
+            color: #63b3ed;
+        }
+
+        .log-response {
+            color: #68d391;
+        }
+
+        .log-error {
+            color: #fc8181;
+        }
+
+        .log-info {
+            color: #d69e2e;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .status-402 {
+            background: #fbd38d;
+            color: #744210;
+        }
+
+        .status-200 {
+            background: #9ae6b4;
+            color: #22543d;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .response-headers {
+            background: #2d3748;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .response-body {
+            background: #2d3748;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 1;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-circle {
+            background: #667eea;
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            background: #48bb78;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }
+
+        .step.active .step-label {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .step.completed .step-label {
+            color: #48bb78;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border-left: 4px solid #4299e1;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #f56565;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI Pay Go - 演示界面</h1>
+            <p>体验 AI Pay 402 支付协议的完整流程。这个演示展示了如何通过 HTTP 402 Payment Required 状态码实现 AI 服务的按需付费。</p>
+        </div>
+
+        <div class="demo-section">
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">发送请求</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">接收 402</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">模拟支付</div>
+                </div>
+                <div class="step" id="step4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">验证成功</div>
+                </div>
+            </div>
+
+            <div id="alert-area"></div>
+
+            <div class="form-group">
+                <label>API 地址</label>
+                <input type="text" id="api-url" value="http://localhost:8080/paid/echo" placeholder="输入 API 地址">
+            </div>
+
+            <div class="form-group">
+                <label>请求体 (JSON)</label>
+                <textarea id="request-body">{"msg": "Hello, AI Pay!"}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>价格: <strong id="price-display">0.01 CNY</strong></label>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="sendRequest()">📤 发送请求</button>
+                <button class="btn-success hidden" id="btn-pay" onclick="simulatePayment()">💰 模拟支付</button>
+                <button class="btn-secondary" onclick="clearLogs()">🗑️ 清除日志</button>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3 style="margin-bottom: 15px; color: #333;">📋 请求/响应日志</h3>
+            <div class="log-container" id="log-container">
+                <div class="log-entry">
+                    <span class="log-info">ℹ️ 等待请求...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPaymentProof = null;
+        let currentStep = 1;
+
+        function updateStep(step) {
+            currentStep = step;
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                stepEl.classList.remove('active', 'completed');
+                if (i < step) {
+                    stepEl.classList.add('completed');
+                } else if (i === step) {
+                    stepEl.classList.add('active');
+                }
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertArea = document.getElementById('alert-area');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertArea.innerHTML = '';
+            alertArea.appendChild(alertDiv);
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function addLog(content, type = 'info') {
+            const container = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="log-${type}">[${timestamp}] ${content}</span>`;
+
+            container.insertBefore(entry, container.firstChild);
+        }
+
+        function formatHeaders(headers) {
+            let html = '<div class="response-headers">';
+            for (const [key, value] of headers.entries()) {
+                html += `<div><strong>${key}</strong>: ${value}</div>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        async function sendRequest() {
+            const url = document.getElementById('api-url').value;
+            const body = document.getElementById('request-body').value;
+
+            updateStep(1);
+            addLog(`➡️ POST ${url}`, 'request');
+            addLog(`📦 Body: ${body}`, 'request');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(currentPaymentProof && {'Payment-Proof': currentPaymentProof})
+                    },
+                    body: currentPaymentProof ? body : body
+                });
+
+                const responseBody = await response.text();
+
+                updateStep(2);
+
+                let logContent = `<div class="log-response">⬅️ HTTP ${response.status}`;
+                logContent += formatHeaders(response.headers);
+
+                if (response.status === 402) {
+                    logContent += `<div class="response-body">${responseBody}</div>`;
+                    logContent += `</div>`;
+                    addLog(logContent, 'response');
+
+                    const paymentGateway = response.headers.get('payment-gateway');
+                    const paymentPrice = response.headers.get('payment-price');
+
+                    if (paymentGateway) {
+                        document.getElementById('price-display').textContent = paymentPrice || '0.01 CNY';
+                        document.getElementById('btn-pay').classList.remove('hidden');
+                        showAlert('收到 402 Payment Required！点击"模拟支付"继续。', 'info');
+                        updateStep(2);
+                    }
+                } else if (response.status === 200) {
+                    logContent += `<div class="response-body">${responseBody}</div>`;
+                    logContent += `</div>`;
+                    addLog(logContent, 'response');
+                    showAlert('✅ 支付验证成功！资源已交付。', 'success');
+                    updateStep(4);
+                    currentPaymentProof = null;
+                    document.getElementById('btn-pay').classList.add('hidden');
+                } else {
+                    logContent += `<div class="response-body">${responseBody}</div>`;
+                    logContent += `</div>`;
+                    addLog(logContent, 'error');
+                    showAlert(`请求失败: ${response.status}`, 'error');
+                }
+
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+                showAlert(`请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        function simulatePayment() {
+            updateStep(3);
+            showAlert('💳 正在模拟支付流程...', 'info');
+
+            setTimeout(() => {
+                currentPaymentProof = btoa(JSON.stringify({
+                    trade_no: '20240608' + Math.random().toString().substr(2, 10),
+                    payment_proof: 'mock_payment_proof_' + Date.now(),
+                    client_session: ''
+                }));
+
+                showAlert('✅ 支付成功！正在重新发送请求...', 'success');
+                updateStep(3);
+
+                setTimeout(() => {
+                    sendRequest();
+                }, 1000);
+            }, 1500);
+        }
+
+        function clearLogs() {
+            const container = document.getElementById('log-container');
+            container.innerHTML = '<div class="log-entry"><span class="log-info">ℹ️ 日志已清除，等待请求...</span></div>';
+        }
+
+        // 初始化
+        addLog('✅ Demo 界面已加载。点击"发送请求"开始体验 AI Pay 流程。', 'info');
+    </script>
+</body>
+</html>
