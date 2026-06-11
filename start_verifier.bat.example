@@ -1,0 +1,48 @@
+@echo off
+chcp 65001 >nul
+cd /d %~dp0
+
+echo ========================================
+echo   AgentPay Verifier 启动
+echo ========================================
+echo.
+echo   提示: 首次运行需要配置凭证
+echo   打开 http://localhost:8080/admin 在网页中配置
+echo   或在此文件中填入下方信息
+echo.
+
+:: ────────── 支付宝凭证（可选 — 也可在 admin 面板配置）──────────
+set AIPAY_APP_ID=请替换为你的APP_ID
+set AIPAY_SELLER_ID=请替换为你的2088商户ID
+set AIPAY_SERVICE_ID=请替换为你的AI收service_id
+
+:: ────────── 密钥文件 ──────────
+:: 将私钥保存到 aipay_keys\private_key.pem
+:: 将公钥保存到 aipay_keys\alipay_public_key.pem
+set AIPAY_PRIVATE_KEY_FILE=aipay_keys\private_key.pem
+set AIPAY_PUBLIC_KEY_FILE=aipay_keys\alipay_public_key.pem
+
+:: ────────── 上游转发 ──────────
+set AIPAY_UPSTREAM_URL=请替换为你的AI服务地址（如 http://localhost/v1/chat-messages）
+set AIPAY_UPSTREAM_AUTH_HEADER=请替换为Bearer鉴权头（如 Bearer app-xxx）
+
+:: ────────── 可选 ──────────
+set AIPAY_SELLER_NAME=AI智能体服务
+set AIPAY_LISTEN_PORT=8080
+
+echo [检查] 密钥文件...
+if not exist "%AIPAY_PRIVATE_KEY_FILE%" (
+    echo [提示] 未找到密钥文件，请通过 admin 面板配置
+)
+if not exist "%AIPAY_PUBLIC_KEY_FILE%" (
+    echo [提示] 未找到支付宝公钥，请通过 admin 面板配置
+)
+echo.
+echo [启动] agentpay-verifier on :%AIPAY_LISTEN_PORT%
+echo [Admin] http://localhost:%AIPAY_LISTEN_PORT%/admin
+echo.
+echo 按 Ctrl+C 停止
+echo ========================================
+
+agentpay-verifier.exe
+pause

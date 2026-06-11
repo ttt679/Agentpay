@@ -36,6 +36,13 @@ Thumbs.db
 *.pem
 *.key
 aipay_keys/
+keys/
+agentpay-config.json
+start_verifier.bat
+
+# Python cache
+__pycache__/
+*.pyc
 
 # Debug logs
 debug_*.log
